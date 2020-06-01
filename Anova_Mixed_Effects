@@ -1,0 +1,101 @@
+data MIE1413.Pearl;
+input Value Coat $ Batch $ Obs $;
+cards;
+   72.0      1      1      1
+   74.6      1      1      2
+   67.4      1      1      3
+   72.8      1      1      4
+   72.1      1      2      1
+   76.9      1      2      2
+   74.8      1      2      3
+   73.3      1      2      4
+   75.2      1      3      1
+   73.8      1      3      2
+   75.7      1      3      3
+   77.8      1      3      4
+   70.4      1      4      1
+   68.1      1      4      2
+   72.4      1      4      3
+   72.4      1      4      4
+   76.9      2      1      1
+   78.1      2      1      2
+   72.9      2      1      3
+   74.2      2      1      4
+   80.3      2      2      1
+   79.3      2      2      2
+   76.6      2      2      3
+   77.2      2      2      4
+   80.2      2      3      1
+   76.6      2      3      2
+   77.3      2      3      3
+   79.9      2      3      4
+   74.3      2      4      1
+   77.6      2      4      2
+   74.4      2      4      3
+   72.9      2      4      4
+   76.3      3      1      1
+   74.1      3      1      2
+   77.1      3      1      3
+   75.0      3      1      4
+   80.9      3      2      1
+   73.7      3      2      2
+   78.6      3      2      3
+   80.2      3      2      4
+   79.2      3      3      1
+   78.0      3      3      2
+   77.6      3      3      3
+   81.2      3      3      4
+   71.6      3      4      1
+   77.7      3      4      2
+   75.2      3      4      3
+   74.4      3      4      4
+;;;;
+
+*PROC MIXED (second version gets type 3 sum of squares) Batch Coat interaction variance parameter is estimated to be 0 (or negative). Thus, it should be removed from the model;
+
+proc mixed data=MIE1413.Pearl; 
+class Coat Batch;
+model Value = Coat / ddfm=satterth RESIDUAL solution;
+random Batch Batch*Coat ; 
+lsmeans Coat / cl pdiff;
+run; quit; 
+
+proc mixed data=MIE1413.Pearl cl method=type3; 
+class Coat Batch;
+model Value = Coat / ddfm=satterth RESIDUAL solution;
+random Batch Batch*Coat / solution; 
+lsmeans Coat / cl pdiff;
+run; quit; 
+
+*PROC GLM Batch Coat interaction is highly non-significant. Thus, it should be removed from the model;
+proc glm data=MIE1413.Pearl; 
+class Coat Batch;
+model Value = Coat Batch Batch*Coat/ solution;
+random Batch Batch*Coat; 
+lsmeans Coat / cl pdiff;
+test h = Coat e = Batch*Coat;
+run; quit; 
+
+
+*Final models for PROC MIXED (second version gets type 3 sum of squares) and PROC GLM;
+proc mixed data=MIE1413.Pearl cl; 
+class Coat Batch;
+model Value = Coat / ddfm=satterth RESIDUAL solution outp = res;
+random Batch ; 
+lsmeans Coat / cl pdiff;
+run; quit; 
+
+proc mixed data=MIE1413.Pearl cl method=type3; 
+class Coat Batch;
+model Value = Coat / ddfm=satterth RESIDUAL solution outp = res;
+random Batch / solution; 
+lsmeans Coat / cl pdiff;
+run; quit; 
+
+proc glm data=MIE1413.Pearl; 
+class Coat Batch;
+model Value = Coat Batch / solution;
+random Batch ; 
+lsmeans Coat / cl pdiff;
+run; quit; 
+
